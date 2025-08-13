@@ -19,7 +19,6 @@ class FullscreenYoutubePlayer extends StatefulWidget {
     required this.videoId,
     this.startSeconds,
     this.endSeconds,
-    this.gestureRecognizers = const <Factory<OneSequenceGestureRecognizer>>{},
     this.backgroundColor,
     this.aspectRatio,
   });
@@ -32,19 +31,6 @@ class FullscreenYoutubePlayer extends StatefulWidget {
 
   /// The time in seconds when the video should end at.
   final double? endSeconds;
-
-  /// Which gestures should be consumed by the youtube player.
-  ///
-  /// It is possible for other gesture recognizers to be competing with the player on pointer
-  /// events, e.g if the player is inside a [ListView] the [ListView] will want to handle
-  /// vertical drags. The player will claim gestures that are recognized by any of the
-  /// recognizers on this list.
-  ///
-  /// By default vertical and horizontal gestures are absorbed by the player.
-  /// Passing an empty set will ignore the defaults.
-  ///
-  /// This is ignored on web.
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
 
   /// The background color of the [WebView].
   ///
@@ -80,7 +66,6 @@ class FullscreenYoutubePlayer extends StatefulWidget {
             videoId: videoId,
             startSeconds: startSeconds,
             endSeconds: endSeconds,
-            gestureRecognizers: gestureRecognizers,
             backgroundColor: backgroundColor,
             aspectRatio: aspectRatio,
           );
@@ -136,7 +121,6 @@ class _FullscreenYoutubePlayerState extends State<FullscreenYoutubePlayer> {
         controller: _controller,
         aspectRatio: MediaQuery.of(context).size.aspectRatio,
         backgroundColor: widget.backgroundColor,
-        gestureRecognizers: widget.gestureRecognizers,
       ),
     );
   }

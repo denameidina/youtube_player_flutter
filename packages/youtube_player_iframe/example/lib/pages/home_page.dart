@@ -29,7 +29,7 @@ const List<String> _videoIds = [
 
 ///
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.videoId});
+  const HomePage({super.key, this.videoId = 'tcodrIK2P_I'});
 
   final String? videoId;
 
@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _controller = YoutubePlayerController(
       params: const YoutubePlayerParams(
-        showControls: true,
+        showControls: false,
         mute: false,
         showFullscreenButton: true,
         loop: false,

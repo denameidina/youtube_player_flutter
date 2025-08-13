@@ -85,7 +85,6 @@ class _VideoListPageState extends State<VideoListPage> {
           return YoutubePlayer(
             key: ObjectKey(controller),
             aspectRatio: 16 / 9,
-            enableFullScreenOnVerticalDrag: false,
             controller: controller,
             keepAlive: true,
           );

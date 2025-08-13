@@ -110,6 +110,9 @@ class YoutubePlayerParams {
   /// The user agent for the player.
   final String? userAgent;
 
+  /// Whether to show custom controls.
+  final CustomControlParams? customControlParams;
+
   /// Defines player parameters for the youtube player.
   const YoutubePlayerParams({
     this.mute = false,
@@ -117,7 +120,7 @@ class YoutubePlayerParams {
     this.enableCaption = true,
     this.pointerEvents = PointerEvents.initial,
     this.color = 'white',
-    this.showControls = true,
+    this.showControls = false,
     this.enableKeyboard = kIsWeb,
     this.enableJavaScript = true,
     this.showFullscreenButton = false,
@@ -128,6 +131,7 @@ class YoutubePlayerParams {
     this.playsInline = true,
     this.strictRelatedVideos = false,
     this.userAgent,
+    this.customControlParams = const CustomControlParams(),
   });
 
   /// Creates [Map] representation of [YoutubePlayerParams].
@@ -162,6 +166,28 @@ class YoutubePlayerParams {
   String toJson() => jsonEncode(toMap());
 
   int _boolean(bool value) => value ? 1 : 0;
+}
+
+class CustomControlParams {
+  const CustomControlParams({
+    this.showPlayButton = true,
+    this.showMuteButton = true,
+    this.showFullscreenButton = true,
+    this.showProgressBar = true,
+    this.showPlayrateButton = true,
+    this.showSeekButton = true,
+    this.showProgressTime = true,
+    this.draggableProgressBar = true,
+  });
+
+  final bool showPlayButton;
+  final bool showMuteButton;
+  final bool showFullscreenButton;
+  final bool showProgressBar;
+  final bool showPlayrateButton;
+  final bool showSeekButton;
+  final bool showProgressTime;
+  final bool draggableProgressBar;
 }
 
 /// The pointer events.

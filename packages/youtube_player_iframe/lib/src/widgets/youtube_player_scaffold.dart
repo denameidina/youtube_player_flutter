@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -24,7 +23,6 @@ class YoutubePlayerScaffold extends StatefulWidget {
     this.aspectRatio = 16 / 9,
     this.autoFullScreen = true,
     this.defaultOrientations = DeviceOrientation.values,
-    this.gestureRecognizers = const <Factory<OneSequenceGestureRecognizer>>{},
     this.fullscreenOrientations = const [
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -33,7 +31,6 @@ class YoutubePlayerScaffold extends StatefulWidget {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ],
-    this.enableFullScreenOnVerticalDrag = true,
     this.backgroundColor,
     @Deprecated('Unused parameter. Use `YoutubePlayerParam.userAgent` instead.')
     this.userAgent,
@@ -61,16 +58,6 @@ class YoutubePlayerScaffold extends StatefulWidget {
 
   /// The orientations that are used when not in fullscreen and auto rotate is disabled.
   final List<DeviceOrientation> lockedOrientations;
-
-  /// Enables switching full screen mode on vertical drag in the player.
-  ///
-  /// Default is true.
-  final bool enableFullScreenOnVerticalDrag;
-
-  /// Which gestures should be consumed by the youtube player.
-  ///
-  /// This property is ignored in web.
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
 
   /// The background color of the [WebView].
   final Color? backgroundColor;
@@ -103,8 +90,6 @@ class _YoutubePlayerScaffoldState extends State<YoutubePlayerScaffold> {
       child: YoutubePlayer(
         controller: widget.controller,
         aspectRatio: widget.aspectRatio,
-        gestureRecognizers: widget.gestureRecognizers,
-        enableFullScreenOnVerticalDrag: widget.enableFullScreenOnVerticalDrag,
         backgroundColor: widget.backgroundColor,
       ),
     );
