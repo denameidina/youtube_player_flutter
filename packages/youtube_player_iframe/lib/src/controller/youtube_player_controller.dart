@@ -17,6 +17,11 @@ import 'youtube_player_event_handler.dart';
 /// The Web Resource Error.
 typedef YoutubeWebResourceError = WebResourceError;
 
+/// Optional callback invoked when the player wants to navigate to a new page.
+/// Return true to allow the navigation, false to cancel it which allows you
+/// to handle the navigation manually.
+typedef WebViewNavigationRequestCallback = bool Function(Uri uri);
+
 /// Controls the youtube player, and provides updates when the state is changing.
 ///
 /// The video is displayed in a Flutter app by creating a [YoutubePlayer] widget.
@@ -27,6 +32,7 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
   YoutubePlayerController({
     this.params = const YoutubePlayerParams(),
     ValueChanged<YoutubeWebResourceError>? onWebResourceError,
+    WebViewNavigationRequestCallback? onWebNavigationRequest,
     this.key,
   }) {
     _eventHandler = YoutubePlayerEventHandler(this);
@@ -48,7 +54,23 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
       },
       onNavigationRequest: (request) {
         final uri = Uri.tryParse(request.url);
-        return _decideNavigation(uri);
+
+        return switch (uri) {
+          null => NavigationDecision.prevent,
+
+          // required for ios
+          var u when u.toString() == 'https://www.youtube.com/' =>
+            NavigationDecision.navigate,
+          var u when u.host == 'www.youtube.com' && u.path == '/embed/' =>
+            NavigationDecision.navigate,
+          var u when u.toString() == 'about:blank' =>
+            NavigationDecision.prevent,
+          _ => onWebNavigationRequest == null
+              ? _decideNavigation(uri)
+              : onWebNavigationRequest.call(uri)
+                  ? NavigationDecision.navigate
+                  : NavigationDecision.prevent
+        };
       },
     );
 
@@ -72,13 +94,21 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
 
   /// Creates a [YoutubePlayerController] and initializes the player with [videoId].
   factory YoutubePlayerController.fromVideoId({
+    String? key,
     required String videoId,
     YoutubePlayerParams params = const YoutubePlayerParams(),
     bool autoPlay = false,
     double? startSeconds,
     double? endSeconds,
+    ValueChanged<YoutubeWebResourceError>? onWebResourceError,
+    WebViewNavigationRequestCallback? onWebNavigationRequest,
   }) {
-    final controller = YoutubePlayerController(params: params, key: videoId);
+    final controller = YoutubePlayerController(
+      params: params,
+      key: key,
+      onWebResourceError: onWebResourceError,
+      onWebNavigationRequest: onWebNavigationRequest,
+    );
 
     if (autoPlay) {
       controller.loadVideoById(
@@ -103,6 +133,9 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
   /// Defines player parameters for the youtube player.
   final YoutubePlayerParams params;
 
+  /// The aspect ratio of the video. Defaults to 16/9. Youtube Shorts to 9/16.
+  double? _aspectRatio;
+
   /// The [WebViewController] that drives the player
   @internal
   late final WebViewController webViewController;
@@ -120,6 +153,12 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
 
   /// The [YoutubePlayerValue].
   YoutubePlayerValue get value => _value;
+
+  /// The current aspect ratio of the video.
+  double get aspectRatio => _aspectRatio ?? 16 / 9;
+
+  /// Sets the aspect ratio of the video.
+  set aspectRatio(double value) => _aspectRatio = value;
 
   @override
   Future<void> cuePlaylist({
@@ -500,7 +539,7 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
   @override
   Future<bool> get isMuted async {
     final isMuted = await _runWithResult('isMuted');
-    return isMuted == '1';
+    return bool.tryParse(isMuted, caseSensitive: false) ?? true;
   }
 
   @override
@@ -571,8 +610,10 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
   Future<PlayerState> get playerState async {
     final stateCode = await _runWithResult('getPlayerState');
 
+    final newStateCode = num.tryParse(stateCode)?.toInt();
+
     return PlayerState.values.firstWhere(
-      (state) => state.code.toString() == stateCode,
+      (state) => state.code == newStateCode,
       orElse: () => PlayerState.unknown,
     );
   }
@@ -633,9 +674,7 @@ class YoutubePlayerController implements YoutubePlayerIFrameAPI {
     return videoStateStream.map((state) => state.position);
   }
 
-  NavigationDecision _decideNavigation(Uri? uri) {
-    if (uri == null) return NavigationDecision.prevent;
-
+  NavigationDecision _decideNavigation(Uri uri) {
     final params = uri.queryParameters;
     final host = uri.host;
     final path = uri.path;
